@@ -1,0 +1,141 @@
+#!/bin/bash
+
+#for i in *avi; do
+#for i in $(ls); do
+# j=`echo $i | sed 's/_nuevo//'`
+# j=`echo $j | sed 's/Erase Una Vez La Vida//'` #Borra la cadena Erase Una Vez La Vida
+# j=`echo $j | sed 's/(//g'`                    # |
+# j=`echo $j | sed 's/)//g'`                    # |-> Borra los paréntesis
+# j=`echo $j | sed 's/ /_/g'`                   # Cambia los espacios en blanco por "_"
+# j=`echo $j | sed 'y/[ÁÉÍÓÚ]/[AEIOU]/'`        # Elimina los acentos
+# mv "$i" $j                                    # Realiza el cambio en cada fichero
+# echo $j
+#done
+
+
+#!/bin/bash
+
+##VARIABLES
+   #DIRWORK-> Directorio de trabajo
+   #FFILE-> Formato de los ficheros a modificar
+   #BCHAR-> Caractér que se quiere borrar
+
+compruebadir () { 
+  # echo "$1"
+   if [ -d "$1" ];then
+      DIRWORK=$OPTARG
+   #  cd "$1"
+     return 0
+    else 
+     echo  "Eldirectorio: "$OPTARG" no existe"
+     exit
+   fi
+}
+
+compruebafiles () {
+#Acepta como parámetro el formato del fichero de la forma *.xxx
+   cd "$DIRWORK"
+   #for i in $(ls $1); do
+   for FILE in $1; do
+   #  echo "$FILE"
+     if [ ! -e "$FILE" ]; then
+        echo "No existe el fichero "$FILE""
+	exit	
+     fi
+   done
+   FFILE=$1
+   return 0
+}
+
+cambiacaracter () {
+#Acepta como parámetros el formato del fichero y los caractéres a modificar. 
+# [FORMATO_FICHERO] [CARACTÉR_ORIGEN] [CARACTÉR_DESTINO]
+   local NEWNAME="string"
+   local ESPACIO="espacio"
+   cd "$DIRWORK"
+
+      for FILE in $1; do
+        if [ "$3" == "$espacio" ];then
+         NEWNAME=`echo $FILE | sed 's/ /_/g'`
+	 echo "$NEWNAME"
+     	 #mv "$FILE" "$NEWNAME"
+   	else	
+        NEWNAME=`echo $FILE | sed 's/"$2"/"$3"/g'` 
+        echo "$NEWNAME"
+        #mv "$FILE" "$NEWNAME"
+  #Te has quedao aki, mira como cerrar el if y for 
+   fi
+   return 0
+}
+
+#MAIN 
+#echo "OPTIND starts at $OPTIND"
+while getopts ":hd:f:c:es:" optname
+  do
+    case "$optname" in
+      "h")
+    	echo "rename.sh Carlos Gómez Cainzos"
+	echo "
+Modo de empleo: rename [-h] [-d <path>] [-f <formato>] [-c <caractér>] [-e] [-s <CAD> <CAD>] 
+    Script que renombra varios ficheros según las opciones:
+   -h: muestra la ayuda 
+   -d <path>: directorio en el que se encuentran los ficheros que se quieren modificar. Si no se especifica ninguno se utiliza el directorio actual
+   -f <formato>: formato que que se quiere modificar. Ej: avi
+   -c <caractér>: borra el caractér tantas veces como aparezca. Ej: (
+   -e: cambia los espacios en blanco por _
+   -s <CADENA1> <CADENA2>: cambia una cadena de caracteres por otra. Si la segunda cadena se deja en blanco se borra la cadena de caractéres.
+       Por ejemplo: -s "foo bar" cambia foo por bar"
+	;;
+      "d")
+	#echo "Option $optname is specified"
+	#echo "Option$ $optname has value $OPTARG"
+	compruebadir "$OPTARG"
+	#echo ""Dir trabajo: $DIRWORK""
+	 ;;
+      "f")
+	# echo "Option $optname is specified"
+	 OPTARG="*.${OPTARG}"
+	# echo "Option $optname has value $OPTARG"
+         compruebafiles "$OPTARG"
+	 TYPE=$OPTARG
+	# echo "$TYPE"
+	 ;;
+      "c")
+        echo "Option $optname is specified"
+	echo "Option $optname has value $OPTARG"
+	BCHAR="$OPTARG"
+	cambiacaracter "$FFILE" "$BCHAR" " "
+        ;;
+      "e")
+	echo "Option $optname is specified"
+#	set -v
+	DUMMY=' ' 
+	cambiacaracter "$FFILE" "$DUMMY" "borrar"
+ #       set +v
+	;;
+      "s")
+        echo "Option $optname is specified"
+	echo "Option $optname has value $OPTARG"
+	;;
+      "?")
+        echo "Unknown option $OPTARG"
+        ;;
+      ":")
+        echo "No argument value for option $OPTARG"
+        ;;
+      *)
+      # Should not occur
+        echo "Unknown error while processing options"
+        ;;
+    esac
+#    echo "OPTIND is now $OPTIND"
+  done
+
+ showargs () {
+  for p in "$@"
+    do
+      echo "[$p]"
+    done
+}
+
+
